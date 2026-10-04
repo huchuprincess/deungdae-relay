@@ -2,12 +2,13 @@ from contextlib import redirect_stdout
 import io
 import json
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import unittest
 
 from relay.safety import RelayError, require_public, sensitive_findings
-from scripts.check_candidate import check, history, scan_text
+from scripts.check_candidate import PUBLIC_REMOTE, check, history, scan_text
 from scripts.export_candidate import export
 
 
@@ -27,6 +28,12 @@ class SecurityTests(unittest.TestCase):
         template = root.parent / "empty-template"; template.mkdir()
         subprocess.run(["git", "init", "--template=" + str(template), "--initial-branch=main", str(root)], env=env,
                        check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # Keep synthetic fixtures minimal on macOS too; retain the audit allowlist.
+        for key in ("core.ignorecase", "core.precomposeunicode"):
+            result = subprocess.run(["git", "-C", str(root), "config", "--local", "--unset-all", key],
+                                    env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if result.returncode not in (0, 5):
+                result.check_returncode()
         return env
 
     def command(self, root, env, *args):
@@ -101,6 +108,45 @@ class SecurityTests(unittest.TestCase):
             self.command(root, env, "commit", "-m", "Synthetic commit. Refs #1")
             findings, _ = history(root, ())
             self.assertTrue(any(f["check"] == "author-privacy" for f in findings))
+
+    def test_ci_checkout_has_public_reflogs_and_still_rejects_sensitive_history(self):
+        workflow = (Path(__file__).resolve().parents[1] / ".github/workflows/ci.yml").read_text()
+        read_step = workflow.split("      - name: Read public source with native Git\n", 1)[1]
+        read_step = read_step.split("      - name:", 1)[0]
+        with tempfile.TemporaryDirectory() as directory:
+            source_parent = Path(directory) / "source"; source_parent.mkdir()
+            source = self.candidate(source_parent); source_env = self.init_git(source)
+            self.command(source, source_env, "add", "PUBLIC_FILES.txt", "README.md")
+            self.command(source, source_env, "commit", "-m", "Synthetic source. Refs #1")
+            sha = self.command(source, source_env, "rev-parse", "HEAD").decode().strip()
+            self.command(source, source_env, "bundle", "create", str(Path(directory) / "input.bundle"), "main")
+
+            checkout = Path(directory) / "checkout"; checkout.mkdir()
+            checkout_env = self.init_git(checkout)
+            checkout_env.update(GIT_COMMITTER_NAME="SyntheticRunner",
+                                GIT_COMMITTER_EMAIL="synthetic-runner" + "@" + "actions.example.invalid")
+            for key, value in re.findall(r"(?m)^          (GIT_COMMITTER_(?:NAME|EMAIL)):\s*(.+)$", read_step):
+                checkout_env[key] = value.replace("${{ github.actor }}", "RelayReview")
+            self.command(checkout, checkout_env, "remote", "add", "origin", PUBLIC_REMOTE + ".git")
+            self.command(checkout, checkout_env, "fetch", "--no-tags", "../input.bundle", "main:refs/remotes/origin/main")
+            self.command(checkout, checkout_env, "checkout", "--detach", sha)
+            report = check(checkout)
+            self.assertTrue(report["ok"], report["findings"])
+            self.assertEqual(report["history"]["commits"], 1)
+
+            private_email = "synthetic" + "@" + "example.invalid"
+            private_env = dict(checkout_env, GIT_COMMITTER_EMAIL=private_email)
+            self.command(checkout, private_env, "update-ref", "--create-reflog", "refs/heads/email-fixture", sha)
+            findings, _ = history(checkout, ())
+            self.assertTrue(any(f["check"] == "personal-email" for f in findings))
+            self.assertNotIn(private_email, json.dumps(findings))
+
+            token = "ghp_" + "Ab1" * 13
+            self.command(checkout, checkout_env, "update-ref", "--create-reflog", "-m", token,
+                         "refs/heads/token-fixture", sha)
+            findings, _ = history(checkout, ())
+            self.assertTrue(any(f["check"] == "provider-token" for f in findings))
+            self.assertNotIn(token, json.dumps(findings))
 
     def test_export_excludes_all_git_history_and_normalizes_permissions(self):
         with tempfile.TemporaryDirectory() as directory:
