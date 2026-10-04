@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "mode": "unconfigured",
+  "notice": "실제 조회 전입니다. 최신 재난 자료가 아닙니다.",
+  "generatedAt": null,
+  "pollAfterSeconds": 600,
+  "staleAfterSeconds": 1800,
+  "feeds": {
+    "weather": {
+      "source": {
+        "provider": "기상청",
+        "dataset": "기상청_기상특보 조회서비스",
+        "url": "https://www.data.go.kr/data/15000415/openapi.do",
+        "license": "공공누리 제1유형, 출처표시",
+        "licenseUrl": "https://www.kogl.or.kr/info/licenseType1.do",
+        "termsCheckedOn": "2026-10-04"
+      },
+      "lastAttemptAt": null,
+      "lastAttemptStatus": "not-requested",
+      "failureCode": null,
+      "lastSuccessAt": null,
+      "data": null
+    },
+    "earthquake": {
+      "source": {
+        "provider": "기상청",
+        "dataset": "기상청_지진정보 조회서비스",
+        "url": "https://www.data.go.kr/data/15000420/openapi.do",
+        "license": "이용허락범위 제한 없음",
+        "licenseUrl": "https://www.data.go.kr/data/15000420/openapi.do",
+        "termsCheckedOn": "2026-10-04"
+      },
+      "lastAttemptAt": null,
+      "lastAttemptStatus": "not-requested",
+      "failureCode": null,
+      "lastSuccessAt": null,
+      "data": null
+    }
+  }
+}

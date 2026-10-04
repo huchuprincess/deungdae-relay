@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "mode": "example",
+  "notice": "직접 만든 예제입니다. 실제 재난 자료가 아닙니다.",
+  "generatedAt": "2000-01-02T03:10:00Z",
+  "pollAfterSeconds": 600,
+  "staleAfterSeconds": 1800,
+  "feeds": {
+    "weather": {
+      "source": {
+        "provider": "기상청",
+        "dataset": "기상청_기상특보 조회서비스",
+        "url": "https://www.data.go.kr/data/15000415/openapi.do",
+        "license": "공공누리 제1유형, 출처표시",
+        "licenseUrl": "https://www.kogl.or.kr/info/licenseType1.do",
+        "termsCheckedOn": "2026-10-04"
+      },
+      "lastAttemptAt": "2000-01-02T03:10:00Z",
+      "lastAttemptStatus": "success",
+      "failureCode": null,
+      "lastSuccessAt": "2000-01-02T03:10:00Z",
+      "data": {
+        "sourceResponseAt": "2000-01-02T03:10:00Z",
+        "queryFrom": "1999-12-26",
+        "queryTo": "2000-01-02",
+        "coverage": "bulletin-history",
+        "regionStateVerified": false,
+        "records": [
+          {
+            "id": "87b771be078632eee094241f",
+            "publishedAt": "2000-01-02T03:00:00Z",
+            "effectiveAt": null,
+            "releasedAt": null,
+            "expiresAt": null,
+            "state": "unconfirmed",
+            "title": "[직접 만든 예제] 예제 구역 특보 발표 기록",
+            "stationCode": "999"
+          },
+          {
+            "id": "33f1fa468c5804de1cb4e11a",
+            "publishedAt": "2000-01-02T03:05:00Z",
+            "effectiveAt": null,
+            "releasedAt": null,
+            "expiresAt": null,
+            "state": "unconfirmed",
+            "title": "[직접 만든 예제] 예제 구역 특보 해제 기록",
+            "stationCode": "999"
+          }
+        ]
+      }
+    },
+    "earthquake": {
+      "source": {
+        "provider": "기상청",
+        "dataset": "기상청_지진정보 조회서비스",
+        "url": "https://www.data.go.kr/data/15000420/openapi.do",
+        "license": "이용허락범위 제한 없음",
+        "licenseUrl": "https://www.data.go.kr/data/15000420/openapi.do",
+        "termsCheckedOn": "2026-10-04"
+      },
+      "lastAttemptAt": "2000-01-02T03:10:00Z",
+      "lastAttemptStatus": "success",
+      "failureCode": null,
+      "lastSuccessAt": "2000-01-02T03:10:00Z",
+      "data": {
+        "sourceResponseAt": "2000-01-02T03:10:00Z",
+        "queryFrom": "1999-12-26",
+        "queryTo": "2000-01-02",
+        "coverage": "event-history",
+        "regionStateVerified": false,
+        "records": [
+          {
+            "id": "16c0a74e7994991fea984801",
+            "publishedAt": "2000-01-02T03:00:00Z",
+            "effectiveAt": null,
+            "releasedAt": null,
+            "expiresAt": null,
+            "state": "reported",
+            "occurredAt": "1999-12-31T16:00:00Z",
+            "latitude": 0.0,
+            "longitude": 0.0,
+            "magnitude": 1.0,
+            "location": "[직접 만든 예제] 실제 지진 위치가 아닌 좌표",
+            "intensity": "[예제] 진도 미확인",
+            "correction": "[예제] 수정사항 없음"
+          }
+        ]
+      }
+    }
+  }
+}

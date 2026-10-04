@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>등대 공공데이터 중계</title>
+<style>
+body { max-width: 42rem; padding: 1.5rem; margin: 2rem auto; font: 1.1rem/1.8 system-ui,sans-serif; color: #172b40; background: #f8fafc; }
+a { color: #124579; text-underline-offset: .2em; } code { overflow-wrap: anywhere; }
+</style>
+<main>
+<h1>등대 공공데이터 중계</h1>
+<p>정부 공식 서비스가 아닙니다. 기상특보와 지진 공개 자료를 조회하는 정적 JSON 프로젝트입니다. 공식 경보 수신, 재발송, 푸시 알림을 제공하지 않습니다.</p>
+<p><a href="v1/latest.json">중계 상태 JSON</a>의 <code>mode</code>, 두 피드의 조회 결과와 마지막 성공 시각을 함께 확인해 주세요. <code>unconfigured</code>는 실제 조회 전, <code>example</code>은 예제입니다. 조회 실패나 빈 목록은 안전을 뜻하지 않습니다.</p>
+<p><a href="examples/v1/latest.json">직접 만든 예제 JSON</a>은 실제 재난 자료가 아닙니다.</p>
+<p>대상 출처: <a href="https://www.data.go.kr/data/15000415/openapi.do">기상청 기상특보 조회서비스</a>, <a href="https://www.data.go.kr/data/15000420/openapi.do">기상청 지진정보 조회서비스</a>. 기상특보 이용 조건은 <a href="https://www.kogl.or.kr/info/licenseType1.do">공공누리 제1유형</a>, 지진은 이용허락범위 제한 없음입니다.</p>
+<p>발표 기록의 시각과 현재 활성 상태는 다릅니다. 특보 목록만으로 지역의 현재 특보 유무를 확정하지 않습니다. 지진 발생 시각은 과거 사건의 시각입니다.</p>
+</main>
+</html>

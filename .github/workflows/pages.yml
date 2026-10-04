@@ -1,0 +1,79 @@
+name: Pages alternative, locked pending dependency review
+on:
+  schedule:
+    - cron: '7-57/10 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: relay-publication
+  cancel-in-progress: false
+jobs:
+  build:
+    # Known vulnerable deploy/upload dependencies: see docs/dependencies.md.
+    # Literal false cannot be bypassed by changing repository variables.
+    if: >-
+      false && github.ref == 'refs/heads/main' &&
+      vars.RELAY_PUBLICATION_APPROVED == 'true' &&
+      vars.LIVE_API_VERIFIED == 'true' &&
+      vars.PAGES_PUBLICATION_APPROVED == 'true' && vars.RELAY_DELIVERY == 'pages'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    environment: relay-production
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      RELAY_PUBLICATION_APPROVED: ${{ vars.RELAY_PUBLICATION_APPROVED }}
+      ALLOW_EMPTY_BASELINE: ${{ vars.ALLOW_EMPTY_BASELINE }}
+      GIT_CONFIG_NOSYSTEM: '1'
+      GIT_CONFIG_GLOBAL: /dev/null
+      GIT_TERMINAL_PROMPT: '0'
+    steps:
+      - name: Read public source with native Git
+        env:
+          RELAY_REF: ${{ github.ref }}
+          RELAY_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          test "$RELAY_REF" = refs/heads/main
+          [[ "$RELAY_SHA" =~ ^[a-f0-9]{40}$ ]]
+          mkdir -p "$RUNNER_TEMP/relay-empty-template"
+          git init --quiet --template="$RUNNER_TEMP/relay-empty-template" .
+          git remote add origin https://github.com/huchuprincess/deungdae-relay.git
+          git -c credential.helper= -c core.hooksPath=/dev/null -c protocol.file.allow=never fetch --quiet --no-tags origin "$RELAY_REF"
+          test "$(git rev-parse FETCH_HEAD)" = "$RELAY_SHA"
+          git -c core.hooksPath=/dev/null checkout --quiet --detach "$RELAY_SHA"
+      - name: Tests and candidate audit
+        run: |
+          python3 -m unittest discover -s tests
+          python3 scripts/check_candidate.py
+      - name: Read previous Pages data
+        run: >-
+          python3 -m relay.storage seed --delivery pages
+          --previous .runtime/previous.json --receipt .runtime/receipt.json
+      - name: Collect the two public feeds
+        env:
+          DATA_GO_KR_SERVICE_KEY: ${{ secrets.DATA_GO_KR_SERVICE_KEY }}
+          LIVE_API_VERIFIED: ${{ vars.LIVE_API_VERIFIED }}
+        run: >-
+          python3 -m relay.run --mode live --previous .runtime/previous.json
+          --output .runtime/latest.json
+      - name: Build only the public site files
+        run: >-
+          python3 -m relay.site --snapshot .runtime/latest.json --output dist --allow-live
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0, locked
+        with:
+          path: dist
+          retention-days: 1
+          include-hidden-files: true
+  deploy:
+    needs: build
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1, locked
