@@ -21,6 +21,9 @@ jobs:
     steps:
       - name: Read public source with native Git
         env:
+          # New checkout reflogs use the public actor identity, never the runner host.
+          GIT_COMMITTER_NAME: ${{ github.actor }}
+          GIT_COMMITTER_EMAIL: ${{ github.actor }}@users.noreply.github.com
           RELAY_REF: ${{ github.ref }}
           RELAY_SHA: ${{ github.sha }}
         run: |
